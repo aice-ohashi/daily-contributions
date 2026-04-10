@@ -2,8 +2,10 @@ name: Daily Contribution
 
 on:
   schedule:
-    # 毎日 UTC 00:00 (JST 09:00) に実行
-    - cron: "0 0 * * *"
+    # GitHub Actions の cron は遅延・スキップされることがあるため複数時刻を設定
+    - cron: "0 0 * * *"   # UTC 00:00 (JST 09:00)
+    - cron: "0 3 * * *"   # UTC 03:00 (JST 12:00) フォールバック
+    - cron: "0 6 * * *"   # UTC 06:00 (JST 15:00) フォールバック
   workflow_dispatch:
 
 jobs:
@@ -15,9 +17,19 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Update timestamp
-        run: date -u +"%Y-%m-%dT%H:%M:%SZ" > LAST_UPDATED
+        run: |
+          TODAY=$(date -u +"%Y-%m-%d")
+          CURRENT=$(cat LAST_UPDATED 2>/dev/null || echo "")
+          if echo "$CURRENT" | grep -q "^$TODAY"; then
+            echo "Already updated today ($TODAY), skipping"
+            echo "SKIP=true" >> "$GITHUB_ENV"
+          else
+            echo "${TODAY}T$(date -u +%H:%M:%SZ)" > LAST_UPDATED
+            echo "SKIP=false" >> "$GITHUB_ENV"
+          fi
 
       - name: Commit and push
+        if: env.SKIP != 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
