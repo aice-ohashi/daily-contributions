@@ -30,8 +30,8 @@ jobs:
       - name: Commit and push
         if: env.SKIP != 'true'
         run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "aice-ohashi"
+          git config user.email "272970774+aice-ohashi@users.noreply.github.com"
           git add contributions.txt
           git commit -m "chore: daily contribution $(date -u +%Y-%m-%d)"
           git push
